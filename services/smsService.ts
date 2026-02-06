@@ -95,6 +95,7 @@ export const sendActualSMS = async (config: SMSConfig, phone: string, message: s
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
+        url: config.endpoint, // Pass the endpoint to the PHP proxy
         api_key: config.apiKey,
         senderid: config.senderId,
         type: type,
@@ -107,7 +108,13 @@ export const sendActualSMS = async (config: SMSConfig, phone: string, message: s
       return { success: false, message: `Server Error: ${response.statusText}` };
     }
     
-    return await response.json();
+    const result = await response.json();
+    
+    if (result.success) {
+        return { success: true, message: `API Response: ${result.provider_response}` };
+    } else {
+        return { success: false, message: result.message || 'Failed to send' };
+    }
   } catch (error: any) {
     console.error("SMS sending failed:", error);
     return { success: false, message: error.message || 'Unknown network error' };
